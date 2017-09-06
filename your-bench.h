@@ -51,8 +51,8 @@ int compute(taco_tensor_t *C, taco_tensor_t *A, taco_tensor_t *B) {
     int B2_size = *(int*)(B->indices[1][0]);
     double* restrict B_vals = (double*)(B->vals);
     
-#pragma omp parallel for
     for (int32_t iA = 0; iA < A1_size; iA++) {
+#pragma omp parallel for
         for (int32_t jB = 0; jB < B1_size; jB++) {
             int32_t pC2 = (iA * C2_size) + jB;
             double tk = 0;
