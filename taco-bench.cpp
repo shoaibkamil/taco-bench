@@ -18,7 +18,7 @@
 #include "poski-bench.h"
 #include "oski-bench.h"
 #include "your-bench.h"
-
+#define YOURS
 using namespace taco;
 using namespace std;
 
@@ -528,7 +528,7 @@ int main(int argc, char* argv[]) {
       int rows,cols;
       rows = size;
       cols = size;
-      Tensor<double> B({cols, rows}, Format({Dense,Dense}));
+      Tensor<double> B({cols, rows}, Format({Dense,Dense}, {1,0}));
       util::fillMatrix(B,util::FillMethod::Dense,1.0);
       Tensor<double> CRef({rows, cols}, Format({Dense,Dense}));
       Tensor<double> A({rows,cols}, Format({Dense,Dense}));
@@ -541,8 +541,8 @@ int main(int argc, char* argv[]) {
       TACO_BENCH(CRef.compute();, "Compute",repeat, timevalue, true)
 
       TacoFormats.insert({"CSR",CSR});
-      TacoFormats.insert({"Sparse,Sparse",Format({Sparse,Sparse})});
-      TacoFormats.insert({"Sparse,Dense",Format({Sparse,Dense})});
+//      TacoFormats.insert({"Sparse,Sparse",Format({Sparse,Sparse})});
+//      TacoFormats.insert({"Sparse,Dense",Format({Sparse,Dense})});
       for (auto& formats:TacoFormats) {
         cout << endl << "C(i, j) = A(i, k) * B(k, j) -- " << formats.first << " -- DENSE" << endl;
         Tensor<double> A2({rows,cols},formats.second);
@@ -583,11 +583,19 @@ int main(int argc, char* argv[]) {
           TACO_BENCH(C.compile();, "Compile",1,timevalue,false)
           TACO_BENCH(C.assemble();,"Assemble",1,timevalue,false)
           TACO_BENCH(C.compute();, "Compute",repeat, timevalue, true)
+            
+          #ifdef YOURS
+          if (products.at("YOURS")) {
+              exprOperands.clear();
+              exprOperands.insert({"CRef",C});
+              exprOperands.insert({"A",A2tmp});
+              exprOperands.insert({"B",B});
+              exprToYOURS(Expr,exprOperands,repeat,timevalue);
+          }
+          #endif
+
         }
       }
-      exprOperands.insert({"CRef",CRef});
-      exprOperands.insert({"A",A});
-      exprOperands.insert({"B",B});
       break;
 
     }
